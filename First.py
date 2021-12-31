@@ -1,69 +1,60 @@
-import pickle
+# import the streamlit library
 import streamlit as st
  
-# loading the trained model
-pickle_in = open('classifier.pkl', 'rb') 
-classifier = pickle.load(pickle_in)
+# give a title to our app
+st.title('Welcome to BMI Calculator')
  
-@st.cache()
-  
-# defining the function which will make the prediction using the data which the user inputs 
-def prediction(Gender, Married, ApplicantIncome, LoanAmount, Credit_History):   
+# TAKE WEIGHT INPUT in kgs
+weight = st.number_input("Enter your weight (in kgs)")
  
-    # Pre-processing user input    
-    if Gender == "Male":
-        Gender = 0
-    else:
-        Gender = 1
+# TAKE HEIGHT INPUT
+# radio button to choose height format
+status = st.radio('Select your height format: ',
+                  ('cms', 'meters', 'feet'))
  
-    if Married == "Unmarried":
-        Married = 0
-    else:
-        Married = 1
- 
-    if Credit_History == "Unclear Debts":
-        Credit_History = 0
-    else:
-        Credit_History = 1  
- 
-    LoanAmount = LoanAmount / 1000
- 
-    # Making predictions 
-    prediction = classifier.predict( 
-        [[Gender, Married, ApplicantIncome, LoanAmount, Credit_History]])
+# compare status value
+if(status == 'cms'):
+    # take height input in centimeters
+    height = st.number_input('Centimeters')
      
-    if prediction == 0:
-        pred = 'Rejected'
-    else:
-        pred = 'Approved'
-    return pred
-      
-  
-# this is the main function in which we define our webpage  
-def main():       
-    # front end elements of the web page 
-    html_temp = """ 
-    <div style ="background-color:yellow;padding:13px"> 
-    <h1 style ="color:black;text-align:center;">Streamlit Loan Prediction ML App</h1> 
-    </div> 
-    """
-      
-    # display the front end aspect
-    st.markdown(html_temp, unsafe_allow_html = True) 
-      
-    # following lines create boxes in which user can enter data required to make prediction 
-    Gender = st.selectbox('Gender',("Male","Female"))
-    Married = st.selectbox('Marital Status',("Unmarried","Married")) 
-    ApplicantIncome = st.number_input("Applicants monthly income") 
-    LoanAmount = st.number_input("Total loan amount")
-    Credit_History = st.selectbox('Credit_History',("Unclear Debts","No Unclear Debts"))
-    result =""
-      
-    # when 'Predict' is clicked, make the prediction and store it 
-    if st.button("Predict"): 
-        result = prediction(Gender, Married, ApplicantIncome, LoanAmount, Credit_History) 
-        st.success('Your loan is {}'.format(result))
-        print(LoanAmount)
+    try:
+        bmi = weight / ((height/100)**2)
+    except:
+        st.text("Enter some value of height")
+         
+elif(status == 'meters'):
+    # take height input in meters
+    height = st.number_input('Meters')
      
-if __name__=='__main__': 
-    main()
+    try:
+        bmi = weight / (height ** 2)
+    except:
+        st.text("Enter some value of height")
+         
+else:
+    # take height input in feet
+    height = st.number_input('Feet')
+     
+    # 1 meter = 3.28
+    try:
+        bmi = weight / (((height/3.28))**2)
+    except:
+        st.text("Enter some value of height")
+ 
+# check if the button is pressed or not
+if(st.button('Calculate BMI')):
+     
+    # print the BMI INDEX
+    st.text("Your BMI Index is {}.".format(bmi))
+     
+    # give the interpretation of BMI index
+    if(bmi < 16):
+        st.error("You are Extremely Underweight")
+    elif(bmi >= 16 and bmi < 18.5):
+        st.warning("You are Underweight")
+    elif(bmi >= 18.5 and bmi < 25):
+        st.success("Healthy")       
+    elif(bmi >= 25 and bmi < 30):
+        st.warning("Overweight")
+    elif(bmi >= 30):
+        st.error("Extremely Overweight")
